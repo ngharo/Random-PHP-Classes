@@ -7,7 +7,7 @@
  * ));
  *
  * $results = $req->execute();
- * 
+ *
  * $results array(
  *   headers   => http headers
  *   body      => http response
@@ -109,7 +109,7 @@ class CurlRequest {
 				$this->url .= "?{$query_string}";
 			}
 		}
-		
+
 		$this->setOpt(CURLOPT_URL, $this->url);
 		curl_setopt_array($this->conn, $this->CURL_OPTS);
 
