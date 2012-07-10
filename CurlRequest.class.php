@@ -12,7 +12,7 @@
  *   headers   => http headers
  *   body      => http response
  *   http_code => http status code
- *   url       => url called
+ *   url       => url called (http://google.com/?foo=bar&encoding=json)
  * )
  */
 if(!function_exists('curl_init')) {
