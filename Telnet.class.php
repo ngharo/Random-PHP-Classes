@@ -48,11 +48,12 @@ class Telnet {
 	 * @param int $timeout Connection timeout in seconds
 	 * @return void
 	 */
-	public function __construct($host = '127.0.0.1', $port = '23', $timeout = 10){
+	public function __construct($host = '127.0.0.1', $port = '23', $timeout = 10, $prompt='$'){
 
 		$this->host = $host;
 		$this->port = $port;
 		$this->timeout = $timeout;
+		$this->prompt = $prompt;
 
 		// set some telnet special characters
 		$this->NULL = chr(0);
@@ -107,6 +108,8 @@ class Telnet {
 		if (!$this->socket){
 			throw new Exception("Cannot connect to $this->host on port $this->port");
 		}
+		
+		$this->waitPrompt();
 
 		return self::TELNET_OK;
 	}
