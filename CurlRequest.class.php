@@ -85,24 +85,31 @@ class CurlRequest {
 		$this->encoding = $encoding;
 	}
 
+	public function verifySSL($verify) {
+		$this->setOpt(CURLOPT_SSL_VERIFYPEER, $verify);
+		$this->setOpt(CURLOPT_SSL_VERIFYHOST, $verify);
+	}
+
 	public function execute() {
 		if(!is_resource($this->conn)) {
 			$this->conn = curl_init();
 		}
 
-		// use default HTTP encoding
-		if($this->encoding) {
-			$query_string = http_build_query($this->params, null, '&');
-		} else {
-			$query_string = '';
-			foreach($this->params as $k => $v) {
-				$query_string .= "{$k}={$v}&";
-			}
-		}
 
 		if($this->method == 'post') {
-			$this->setOpt(CURLOPT_POSTFIELDS, $query_string);
+			// CURLOPT_POSTFIELDS can take an array, so do that
+			$this->setOpt(CURLOPT_POSTFIELDS, $this->params);
 		} else {
+			// use default HTTP encoding
+			if($this->encoding) {
+				$query_string = http_build_query($this->params, null, '&');
+			} else {
+				$query_string = '';
+				foreach($this->params as $k => $v) {
+					$query_string .= "{$k}={$v}&";
+				}
+			}
+
 			if(!$this->urlFormatting || substr($this->url, -1) === '?') {
 				$this->url .= $query_string;
 			} else {
