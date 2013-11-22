@@ -28,6 +28,7 @@ class Telnet {
 	private $prompt;
 	private $errno;
 	private $errstr;
+	private $strip_prompt = TRUE;
 
 	private $NULL;
 	private $DC1;
@@ -135,10 +136,11 @@ class Telnet {
 	 * This method is a wrapper for lower level private methods
 	 *
 	 * @param string $command Command to execute
+	 * @param boolean $add_newline Default TRUE, adds newline to the command
 	 * @return string Command result
 	 */
-	public function exec($command) {
-		$this->write($command);
+	public function exec($command, $add_newline = TRUE) {
+		$this->write($command, $add_newline);
 		$this->waitPrompt();
 		return $this->getBuffer();
 	}
@@ -203,6 +205,16 @@ class Telnet {
 		$this->stream_timeout_usec = (int)(fmod($timeout, 1) * 1000000);
 		$this->stream_timeout_sec = (int)$timeout;
 	}
+	
+	/**
+	 * Set if the buffer should be stripped from the buffer after reading.
+	 *
+	 * @param $strip boolean if the prompt should be stripped.
+	 * @return void
+	 */
+	public function stripPromptFromBuffer($strip) {
+		$this->strip_prompt = $strip;
+	} // function stripPromptFromBuffer
 
 	/**
 	 * Gets character from the socket
@@ -278,10 +290,10 @@ class Telnet {
 	 * Write command to a socket
 	 *
 	 * @param string $buffer Stuff to write to socket
-	 * @param boolean $addNewLine Default TRUE, adds newline to the command
+	 * @param boolean $add_newline Default TRUE, adds newline to the command
 	 * @return boolean
 	 */
-	protected function write($buffer, $addNewLine = TRUE) {
+	protected function write($buffer, $add_newline = TRUE) {
 		if (!$this->socket) {
 			throw new Exception("Telnet connection closed");
 		}
@@ -289,7 +301,7 @@ class Telnet {
 		// clear buffer from last command
 		$this->clearBuffer();
 
-		if ($addNewLine == TRUE) {
+		if ($add_newline == TRUE) {
 			$buffer .= "\n";
 		}
 
@@ -309,10 +321,12 @@ class Telnet {
 	protected function getBuffer() {
 		// Remove all carriage returns from line breaks
 		$buf =  preg_replace('/\r\n|\r/', "\n", $this->buffer);
-		// cut last line (is always prompt)
-		$buf = explode("\n", $buf);
-		unset($buf[count($buf) - 1]);
-		$buf = implode("\n", $buf);
+		// Cut last line from buffer (almost always prompt)
+		if ($this->strip_prompt) {
+			$buf = explode("\n", $buf);
+			unset($buf[count($buf) - 1]);
+			$buf = implode("\n", $buf);
+		}
 		return trim($buf);
 	}
 
